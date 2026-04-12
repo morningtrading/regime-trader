@@ -160,15 +160,14 @@ class TestLockFileRejection:
             finally:
                 rmod.LOCK_FILE = original
 
-    def test_clean_state_approved(self) -> None:
+    def test_clean_state_approved(self, tmp_path) -> None:
         """Ensure no lock file → approval works normally."""
         rm = _rm()
         import core.risk_manager as rmod
         original = rmod.LOCK_FILE
         try:
-            import tempfile, os
-            # point at a non-existent file
-            rmod.LOCK_FILE = Path(tempfile.mktemp(suffix=".lock"))
+            # Point at a path that does not exist (inside a known temp dir)
+            rmod.LOCK_FILE = tmp_path / "trading_halted_nonexistent.lock"
             decision = rm.validate_signal(
                 _signal(), _portfolio_state(), timestamp=_TS
             )

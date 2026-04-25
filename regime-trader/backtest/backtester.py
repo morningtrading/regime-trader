@@ -273,8 +273,6 @@ class WalkForwardBacktester:
         risk_config: Optional[Dict] = None,
         progress_callback=None,
         enforce_stops: bool = False,
-        dump_fold_models: Optional[Path] = None,
-        load_fold_models: Optional[Path] = None,
     ) -> BacktestResult:
         """
         Execute the full walk-forward backtest.
@@ -413,8 +411,6 @@ class WalkForwardBacktester:
                     fold_id, prices, ohlcv, is_features, oos_features,
                     equity, hmm_cfg, strat_cfg,
                     enforce_stops=enforce_stops,
-                    dump_fold_models=dump_fold_models,
-                    load_fold_models=load_fold_models,
                 )
             except Exception as exc:
                 logger.error("Fold %d failed: %s — skipping.", fold_id, exc, exc_info=True)
@@ -525,8 +521,6 @@ class WalkForwardBacktester:
         hmm_cfg: Dict,
         strat_cfg: Dict,
         enforce_stops: bool = False,
-        dump_fold_models: Optional[Path] = None,
-        load_fold_models: Optional[Path] = None,
     ) -> WindowResult:
         """
         Execute one walk-forward fold.
@@ -546,25 +540,10 @@ class WalkForwardBacktester:
             "stability_bars", "flicker_window", "flicker_threshold",
             "min_confidence", "min_covar",
         }
-        if load_fold_models is not None:
-            import pickle
-            fpath = load_fold_models / f"fold_{fold_id:02d}.pkl"
-            with open(fpath, "rb") as fh:
-                engine = pickle.load(fh)
-            logger.info("Fold %d: HMM LOADED from %s  n_states=%d",
-                        fold_id, fpath, engine._n_states)
-        else:
-            engine = HMMEngine(**{k: v for k, v in hmm_cfg.items() if k in _engine_kwargs})
-            engine.fit(is_features.values)
-            logger.info("Fold %d: HMM fitted  n_states=%d  BIC=%.2f",
-                        fold_id, engine._n_states, engine._training_bic)
-            if dump_fold_models is not None:
-                import pickle
-                dump_fold_models.mkdir(parents=True, exist_ok=True)
-                fpath = dump_fold_models / f"fold_{fold_id:02d}.pkl"
-                with open(fpath, "wb") as fh:
-                    pickle.dump(engine, fh)
-                logger.info("Fold %d: HMM dumped to %s", fold_id, fpath)
+        engine = HMMEngine(**{k: v for k, v in hmm_cfg.items() if k in _engine_kwargs})
+        engine.fit(is_features.values)
+        logger.info("Fold %d: HMM fitted  n_states=%d  BIC=%.2f",
+                    fold_id, engine._n_states, engine._training_bic)
 
         # ── 2. Build orchestrator from fitted regime_infos ─────────────────
         regime_infos = engine.get_all_regime_info()

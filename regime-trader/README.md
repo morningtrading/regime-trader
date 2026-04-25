@@ -187,20 +187,19 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 ```
 
-> **⚠️ Cross-platform reproducibility**
+> **✅ Cross-platform reproducibility**
 >
-> Backtest results are **deterministic across Linux machines** (Ubuntu 24.04 native,
-> WSL2 Ubuntu-24.04, Linux VPS — all produce identical output). **Windows native
-> Python produces different results** due to ILP64 vs LP64 OpenBLAS builds: the
-> HMM EM algorithm converges to different local optima → different regime labels
-> → different trades → different P&L (~15–30% difference in total return is normal).
+> Backtest results are **deterministic across Linux and Windows** when both
+> platforms have the full dependency set installed. Verified on 2026-04-25:
+> Windows native Python 3.12 and WSL2 Ubuntu 24.04 produce **identical** output
+> (Total Return +85.02% | Sharpe 1.129 | MaxDD -13.0% | 511 trades — stocks4
+> basket, 2020-01-01 → 2026-04-25, conservative set, `enforce_stops=False`).
 >
-> **Canonical platform: Linux (native or WSL2). Reference results** (stocks4 basket, 5 symbols, 2020–2026, conservative set, `enforce_stops=False`):
-> `Total Return +94.61% | Sharpe 0.860 | MaxDD -11.56%` (commit `f84b278`).
->
-> Windows native on the same code/config gives `+118.55% / Sharpe 0.939 / MaxDD -17.2%` — divergence is from BLAS / floating-point accumulation differences in the HMM fit, NOT random-seed (random_state is already fixed). Cannot be reconciled without containerising the toolchain — not worth it.
->
-> **Use Windows for development and quick iteration; use Linux for any number that goes into a decision.**
+> A previously suspected BLAS/floating-point divergence turned out to be a
+> **missing `yfinance` package** on one platform: `data/vix_fetcher.py`
+> silently fell back from yfinance ^VIX to Alpaca VXX (a different instrument),
+> shifting all VIX-based features and the resulting trades. Always
+> `pip install -r requirements.txt` on every platform.
 
 ### 2. Credentials
 

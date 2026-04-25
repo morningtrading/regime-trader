@@ -1,6 +1,7 @@
 # Secrets — never commit
 .env
 config/credentials.yaml
+config/credentials-*.yaml
 
 # Python
 __pycache__/
@@ -38,8 +39,15 @@ Thumbs.db
 # Scratch / temp files
 *.bak
 *.tmp
+*_bak
+*.ablation_bak
+*.vixablation_bak
 pending prompt*.txt
 never ask me*.txt
 *Copie*
 research/fold_analysis/results/
 research/asset_selection/results/
+
+# Backtest / stress / sweep outputs
+savedresults/
+results/

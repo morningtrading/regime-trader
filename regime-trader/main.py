@@ -2558,6 +2558,8 @@ def run_backtest(config: Dict, args: argparse.Namespace) -> None:
             strategy_config=strategy_config,
             progress_callback=_make_bt_progress(len(list(prices.columns))),
             enforce_stops=getattr(args, "enforce_stops", False),
+            dump_fold_models=(Path(args.dump_fold_models) if getattr(args, "dump_fold_models", None) else None),
+            load_fold_models=(Path(args.load_fold_models) if getattr(args, "load_fold_models", None) else None),
         )
     except Exception as exc:
         _print(f"[red]Backtest failed:[/red] {exc}", console)
@@ -3817,6 +3819,10 @@ def build_parser() -> argparse.ArgumentParser:
     bt_p.add_argument("--enforce-stops", action="store_true", dest="enforce_stops",
                        default=False,
                        help="Enable ATR per-trade stops in backtest (diagnostic A/B; default off — live uses HMM regime + portfolio kill, no broker-side stops)")
+    bt_p.add_argument("--dump-fold-models", default=None, metavar="DIR",
+                       help="Pickle each fold's fitted HMM to DIR/fold_NN.pkl (cross-OS reproducibility test)")
+    bt_p.add_argument("--load-fold-models", default=None, metavar="DIR",
+                       help="Load each fold's HMM from DIR/fold_NN.pkl instead of fitting (cross-OS reproducibility test)")
     bt_p.add_argument("--stress-test",  action="store_true", dest="stress_test",
                        help="Run stress scenarios after the backtest")
     bt_p.add_argument("--telegram",    action="store_true",  default=None, dest="telegram",
